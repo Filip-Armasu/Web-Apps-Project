@@ -1,69 +1,58 @@
-/**
- * Movie cards used on the Landing and Login pages.
- *
- * To replace a CSS placeholder with a real poster later:
- * 1. Add the image file to frontend/public/posters/
- *    Example: frontend/public/posters/interstellar.jpg
- * 2. Set the poster field to that public path:
- *    poster: '/posters/interstellar.jpg'
- *
- * Leave poster as '' to keep the CSS placeholder.
- */
 export const movieCards = [
   {
     id: 'interstellar',
     title: 'Interstellar',
     number: '001',
     theme: 'space',
-    poster: '',
+    poster: '/posters/interstellar.JPG',
   },
   {
     id: 'dune',
     title: 'Dune',
     number: '014',
     theme: 'desert',
-    poster: '',
+    poster: '/posters/Dune.JPG',
   },
   {
     id: 'spider',
     title: 'Spider-Man',
     number: '008',
     theme: 'scarlet',
-    poster: '',
+    poster: '/posters/Spider-Man.JPG',
   },
   {
     id: 'barbie',
     title: 'Barbie',
     number: '021',
     theme: 'pink',
-    poster: '',
+    poster: '/posters/Barbie.JPG',
   },
   {
     id: 'batman',
     title: 'The Batman',
     number: '005',
     theme: 'noir',
-    poster: '',
+    poster: '/posters/The Batman.JPG',
   },
   {
     id: 'arrival',
     title: 'Arrival',
     number: '033',
     theme: 'mist',
-    poster: '',
+    poster: '/posters/Arrival.JPG',
   },
   {
     id: 'inception',
     title: 'Inception',
     number: '002',
     theme: 'city',
-    poster: '',
+    poster: '/posters/Inception.JPG ',
   },
   {
     id: 'blade',
     title: 'Blade Runner',
     number: '017',
     theme: 'neon',
-    poster: '',
+    poster: '/posters/Blade Runner.JPG',
   },
 ]
