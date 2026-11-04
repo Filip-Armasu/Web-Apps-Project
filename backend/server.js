@@ -11,6 +11,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Import and mount authentication routes
+const { router: authRouter } = require('./routes/auth');
+app.use('/api', authRouter);
+
 // test route
 app.get('/', (req, res) => {
   res.json({ message: "Movie Watchlist API is running" });
@@ -20,16 +24,3 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-// POST /api/register
-app.post('/api/register', async (req, res) => {
-  const { email, password } = req.body;
-  // logic and pass hash here
-  res.status(201).json({ message: "User registered successfully" });
-});
-
-// POST /api/login
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  // logic here
-  res.status(200).json({ message: "Login successful" });
-});
