@@ -1,0 +1,35 @@
+.neon-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4ad4ff 0%, #1aa8ff 100%);
+  color: #041018;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 1px rgba(170, 230, 255, 0.45),
+    0 0 28px rgba(40, 180, 255, 0.55);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.neon-button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(170, 230, 255, 0.7),
+    0 0 36px rgba(40, 180, 255, 0.8);
+}
+
+.neon-button:focus-visible {
+  outline: 2px solid #9ae6ff;
+  outline-offset: 3px;
+}
+
+.neon-button--full {
+  width: 100%;
+  justify-content: center;
+  margin-top: 6px;
+}

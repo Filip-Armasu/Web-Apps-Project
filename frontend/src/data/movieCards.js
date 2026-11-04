@@ -1,0 +1,58 @@
+export const movieCards = [
+  {
+    id: 'interstellar',
+    title: 'Interstellar',
+    number: '001',
+    theme: 'space',
+    poster: '/posters/interstellar.JPG',
+  },
+  {
+    id: 'dune',
+    title: 'Dune',
+    number: '014',
+    theme: 'desert',
+    poster: '/posters/Dune.JPG',
+  },
+  {
+    id: 'spider',
+    title: 'Spider-Man',
+    number: '008',
+    theme: 'scarlet',
+    poster: '/posters/Spider-Man.JPG',
+  },
+  {
+    id: 'barbie',
+    title: 'Barbie',
+    number: '021',
+    theme: 'pink',
+    poster: '/posters/Barbie.JPG',
+  },
+  {
+    id: 'batman',
+    title: 'The Batman',
+    number: '005',
+    theme: 'noir',
+    poster: '/posters/The Batman.JPG',
+  },
+  {
+    id: 'arrival',
+    title: 'Arrival',
+    number: '033',
+    theme: 'mist',
+    poster: '/posters/Arrival.JPG',
+  },
+  {
+    id: 'inception',
+    title: 'Inception',
+    number: '002',
+    theme: 'city',
+    poster: '/posters/Inception.JPG ',
+  },
+  {
+    id: 'blade',
+    title: 'Blade Runner',
+    number: '017',
+    theme: 'neon',
+    poster: '/posters/Blade Runner.JPG',
+  },
+]
