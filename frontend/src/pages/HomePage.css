@@ -38,9 +38,7 @@
   }
   
   
-.home__hero {
-    padding: 45px 0 60px;
-  }
+
   
   .home__eyebrow {
     margin: 0 0 14px;
@@ -173,9 +171,7 @@
   }
   
   @media (max-width: 768px) {
-    .home__hero {
-      padding: 20px 0 45px;
-    }
+   
   
     .home__description {
       font-size: 15px;
@@ -497,4 +493,425 @@
     outline-offset: 3px;
   }
   
- 
+ /* STEP 10: Clickable movie poster */
+
+.home__poster-button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: inherit;
+  }
+  
+  .home__poster-button .home__poster {
+    display: block;
+    width: 100%;
+    transition: transform 0.3s ease;
+  }
+  
+  .home__poster-button:hover .home__poster {
+    transform: scale(1.04);
+  }
+  
+  .home__poster-button:focus-visible {
+    outline: 2px solid #58dfff;
+    outline-offset: 3px;
+  }
+
+
+  /* STEP 10: 3D Flip Movie Modal */
+
+.movie-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(2, 6, 18, 0.88);
+    backdrop-filter: blur(12px);
+  }
+  
+  .movie-modal {
+    position: relative;
+    width: min(360px, 100%);
+    height: min(540px, 80vh);
+    perspective: 1200px;
+    animation: movie-modal-appear 0.35s ease-out both;
+  }
+  
+  .movie-modal__card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    animation: movie-card-flip 1.1s ease-in-out 0.25s both;
+  }
+  
+  .movie-modal__face {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border: 2px solid #43cfff;
+    border-radius: 20px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    box-shadow: 0 0 35px rgba(49, 195, 255, 0.3);
+  }
+  
+  .movie-modal__front {
+    background: #071020;
+  }
+  
+  .movie-modal__front img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .movie-modal__back {
+    display: flex;
+    flex-direction: column;
+    padding: 24px 22px;
+    background:
+      radial-gradient(
+        circle at 85% 5%,
+        rgba(88, 190, 255, 0.17),
+        transparent 48%
+      ),
+      linear-gradient(155deg, #173958, #0a152b 65%, #070c19);
+    color: #ffffff;
+    transform: rotateY(180deg);
+  }
+  
+  .movie-modal__label {
+    margin-bottom: 28px;
+    color: #66dcff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  
+  .movie-modal__back h2 {
+    margin: 0 0 18px;
+    font-size: 28px;
+    line-height: 1.2;
+  }
+  
+  .movie-modal__genre,
+  .movie-modal__year {
+    margin: 0 0 10px;
+    color: #9eddf5;
+    font-size: 14px;
+  }
+  
+  .movie-modal__description {
+    flex: 1;
+    width: 100%;
+    margin-top: 22px;
+    overflow-y: auto;
+    color: #d2dfec;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  
+  .movie-modal__watchlist {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 18px;
+    border: 1px solid #4dd8ff;
+    border-radius: 10px;
+    background: rgba(42, 181, 240, 0.16);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  
+  .movie-modal__watchlist:hover {
+    background: rgba(42, 181, 240, 0.3);
+  }
+  
+  .movie-modal__close {
+    position: absolute;
+    top: -18px;
+    right: -18px;
+    z-index: 5;
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid #62dfff;
+    border-radius: 50%;
+    background: #08192d;
+    color: #fff;
+    font-size: 26px;
+    cursor: pointer;
+  }
+  
+  @keyframes movie-modal-appear {
+    from {
+      opacity: 0;
+      transform: scale(0.75);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  @keyframes movie-card-flip {
+    from {
+      transform: rotateY(0deg);
+    }
+    to {
+      transform: rotateY(180deg);
+    }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .movie-modal,
+    .movie-modal__card {
+      animation-duration: 0.01ms;
+      animation-delay: 0ms;
+    }
+  }
+/* STEP 10-5: Holographic Movie Archive Layout */
+
+.movie-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+  }
+  
+  .movie-modal__header .movie-modal__label {
+    margin: 0;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+  
+  .movie-modal__sparkle {
+    color: #86eaff;
+    font-size: 22px;
+    text-shadow: 0 0 14px rgba(100, 220, 255, 0.65);
+  }
+  
+  .movie-modal__overview {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    min-width: 0;
+  }
+  
+  .movie-modal__mini-poster {
+    width: 105px;
+    height: 155px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: 9px;
+    border: 1px solid rgba(120, 220, 255, 0.55);
+    box-shadow: 0 0 16px rgba(48, 190, 255, 0.16);
+  }
+  
+  .movie-modal__info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .movie-modal__info h2 {
+    margin: 0 0 14px;
+    font-size: 22px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+  
+  .movie-modal__info .movie-modal__year {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #a6c4dd;
+  }
+  
+  .movie-modal__info .movie-modal__genre {
+    margin: 0;
+    font-size: 12px;
+    color: #7ee1ff;
+    line-height: 1.5;
+  }
+  
+  .movie-modal__divider {
+    height: 1px;
+    flex-shrink: 0;
+    margin: 24px 0 18px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(88, 210, 255, 0.6),
+      transparent
+    );
+  }
+  
+  .movie-modal__story {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .movie-modal__section-label {
+    color: #6fdbfa;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+  }
+  
+  .movie-modal__story .movie-modal__description {
+    flex: 1;
+    min-height: 0;
+    margin: 12px 0 0;
+    overflow-y: auto;
+    color: #c7d9e9;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+  
+  .movie-modal__footer {
+    flex-shrink: 0;
+    margin-top: 14px;
+  }
+  
+  .movie-modal__footer-label {
+    display: block;
+    margin-bottom: 12px;
+    color: #8ab4d1;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+  
+  .movie-modal__footer .movie-modal__watchlist {
+    margin: 0;
+  }
+
+  /* STEP 10-7: Genre Tags */
+
+.movie-modal__genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  
+  .movie-modal__genre-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 8px;
+    border: 1px solid rgba(94, 215, 255, 0.38);
+    border-radius: 6px;
+    background: rgba(35, 153, 200, 0.13);
+    color: #9beaff;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  /* STEP 10-8: Subtle Holographic Light Sweep */
+
+.movie-modal__hologram {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    overflow: hidden;
+    border-radius: 20px;
+    pointer-events: none;
+    transform: translateZ(2px);
+  }
+  
+  .movie-modal__hologram::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -90%;
+    width: 65%;
+    height: 200%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(109, 225, 255, 0.05),
+      rgba(204, 166, 255, 0.13),
+      rgba(137, 237, 255, 0.2),
+      rgba(109, 225, 255, 0.05),
+      transparent
+    );
+    transform: rotate(25deg) translateX(0);
+    animation: movie-hologram-sweep 1.3s ease-in-out 0.3s both;
+  }
+  
+  @keyframes movie-hologram-sweep {
+    0% {
+      transform: rotate(25deg) translateX(0);
+      opacity: 0;
+    }
+  
+    20% {
+      opacity: 1;
+    }
+  
+    80% {
+      opacity: 1;
+    }
+  
+    100% {
+      transform: rotate(25deg) translateX(850px);
+      opacity: 0;
+    }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .movie-modal__hologram::after {
+      animation: none;
+      opacity: 0;
+    }
+  }
+
+  /* STEP 10-10: Mobile Movie Modal */
+
+@media (max-width: 480px) {
+    .movie-modal-overlay {
+      padding: 16px;
+    }
+  
+    .movie-modal {
+      width: min(360px, 100%);
+      height: min(540px, 85dvh);
+    }
+  
+    .movie-modal__back {
+      padding: 20px 16px;
+    }
+  
+    .movie-modal__overview {
+      gap: 12px;
+    }
+  
+    .movie-modal__mini-poster {
+      width: 85px;
+      height: 125px;
+    }
+  
+    .movie-modal__info h2 {
+      font-size: 19px;
+    }
+  
+    .movie-modal__divider {
+      margin: 18px 0 14px;
+    }
+  
+    .movie-modal__close {
+      top: -12px;
+      right: -8px;
+    }
+  }
+  

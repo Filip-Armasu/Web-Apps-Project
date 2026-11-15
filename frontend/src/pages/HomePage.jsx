@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react';
 import { movieCards } from '../data/movieCards'
 import './HomePage.css'
 import Navbar from '../components/Navbar'
@@ -14,16 +14,7 @@ const genres = [
   'Drama',
 ]
 
-const movieGenres = {
-  interstellar: ['Sci-Fi', 'Drama'],
-  dune: ['Sci-Fi', 'Action'],
-  spider: ['Action', 'Sci-Fi'],
-  barbie: ['Comedy'],
-  batman: ['Action', 'Drama'],
-  arrival: ['Sci-Fi', 'Drama'],
-  inception: ['Sci-Fi', 'Action'],
-  blade: ['Sci-Fi', 'Action'],
-}
+
 
 function HomePage({
     watchlist,
@@ -34,21 +25,52 @@ function HomePage({
   }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedGenre, setSelectedGenre] = useState('All')
-
+  const [selectedMovie, setSelectedMovie] = useState(null);
   
+  useEffect(() => {
+    if (!selectedMovie) return;
   
-
+    // Save the previous scroll setting
+    const previousOverflow = document.body.style.overflow;
+  
+    // Prevent background scrolling
+    document.body.style.overflow = 'hidden';
+  
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setSelectedMovie(null);
+      }
+    };
+  
+    window.addEventListener('keydown', handleKeyDown);
+  
+    return () => {
+      // Restore scrolling when the modal closes
+      document.body.style.overflow = previousOverflow;
+  
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedMovie]);
+  
   const filteredMovies = movieCards.filter((movie) => {
+    // Search movies by title
     const matchesSearch = movie.title
       .toLowerCase()
-      .includes(searchQuery.toLowerCase().trim())
-
+      .includes(searchQuery.toLowerCase().trim());
+  
+    // Get genres directly from movieCards.js
+    const movieGenreList = (movie.genre || '')
+      .split('/')
+      .map((genre) => genre.trim());
+  
+    // Check selected genre
     const matchesGenre =
       selectedGenre === 'All' ||
-      (movieGenres[movie.id] || []).includes(selectedGenre)
-
-    return matchesSearch && matchesGenre
-  })
+      movieGenreList.includes(selectedGenre);
+  
+    return matchesSearch && matchesGenre;
+  });
+ 
 
   return (
     <main className="home">
@@ -105,10 +127,14 @@ function HomePage({
         </div>
 
         <section className="home__explore">
-          <div className="home__section-heading">
-            <h2>Explore Movies</h2>
-            <p>Find something worth watching.</p>
-          </div>
+        <div className="home__section-heading">
+  <h2>Explore Movies</h2>
+
+  <p>
+    Showing {filteredMovies.length}{' '}
+    {filteredMovies.length === 1 ? 'movie' : 'movies'}
+  </p>
+</div>
 
           <div className="home__genres" aria-label="Filter by genre">
             {genres.map((genre) => (
@@ -132,12 +158,19 @@ function HomePage({
             {filteredMovies.map((movie) => (
               <article className="home__movie-card" key={movie.id}>
                 
-<div className="home__poster-wrapper">
-  <img
-    src={movie.poster}
-    alt={`${movie.title} poster`}
-    className="home__poster"
-  />
+                <div className="home__poster-wrapper">
+  <button
+    type="button"
+    className="home__poster-button"
+    onClick={() => setSelectedMovie(movie)}
+    aria-label={`View details for ${movie.title}`}
+  >
+    <img
+      src={movie.poster}
+      alt={`${movie.title} poster`}
+      className="home__poster"
+    />
+  </button>
 
   <span className="home__movie-number">
     #{movie.number}
@@ -181,12 +214,125 @@ function HomePage({
                 <div className="home__movie-info">
                   <h3>{movie.title}</h3>
                   <p>
-                    {(movieGenres[movie.id] || []).join(' • ')}
+                  {(movie.genre || 'Movie')
+    .split('/')
+    .map((genre) => genre.trim())
+    .join(' • ')}
                   </p>
                 </div>
               </article>
             ))}
           </div>
+
+          {selectedMovie && (
+  <div
+    className="movie-modal-overlay"
+    onClick={() => setSelectedMovie(null)}
+  >
+    <div
+      className="movie-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${selectedMovie.title} details`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="movie-modal__close"
+        onClick={() => setSelectedMovie(null)}
+        aria-label="Close movie details"
+      >
+        ×
+      </button>
+
+      <div className="movie-modal__card">
+      <div className="movie-modal__hologram" aria-hidden="true" />
+        {/* FRONT: Movie Poster */}
+        <div className="movie-modal__face movie-modal__front">
+          <img
+            src={selectedMovie.poster}
+            alt={`${selectedMovie.title} poster`}
+          />
+        </div>
+
+        {/* BACK: Movie Details */}
+        <div className="movie-modal__face movie-modal__back">
+  {/* Card header */}
+  <div className="movie-modal__header">
+    <span className="movie-modal__label">
+      MOVIEDEX / ARCHIVE {selectedMovie.number}
+    </span>
+    <span className="movie-modal__sparkle" aria-hidden="true">
+      ✦
+    </span>
+  </div>
+
+  {/* Poster + movie information */}
+  <div className="movie-modal__overview">
+    <img
+      src={selectedMovie.poster}
+      alt={`${selectedMovie.title} poster`}
+      className="movie-modal__mini-poster"
+    />
+
+    <div className="movie-modal__info">
+      <h2>{selectedMovie.title}</h2>
+
+      <p className="movie-modal__year">
+        {selectedMovie.year || 'Year unavailable'}
+      </p>
+
+      <div className="movie-modal__genres">
+  {(selectedMovie.genre || 'Movie')
+    .split('/')
+    .map((genre) => (
+      <span
+        className="movie-modal__genre-tag"
+        key={genre.trim()}
+      >
+        {genre.trim()}
+      </span>
+    ))}
+</div>
+    </div>
+  </div>
+
+  <div className="movie-modal__divider" />
+
+  {/* Synopsis */}
+  <div className="movie-modal__story">
+    <span className="movie-modal__section-label">
+      SYNOPSIS / STORY
+    </span>
+
+    <p className="movie-modal__description">
+      {selectedMovie.description ||
+        'No description available yet.'}
+    </p>
+  </div>
+
+  {/* Footer */}
+  <div className="movie-modal__footer">
+    <span className="movie-modal__footer-label">
+      MOVIE ARCHIVE
+    </span>
+
+    <button
+      type="button"
+      className="movie-modal__watchlist"
+      onClick={() => onToggleWatchlist(selectedMovie.id)}
+    >
+      {watchlist.includes(selectedMovie.id)
+        ? '✓ Remove from Watchlist'
+        : '+ Add to Watchlist'}
+    </button>
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
+)}
+
 
           {filteredMovies.length === 0 && (
             <div className="home__empty">
