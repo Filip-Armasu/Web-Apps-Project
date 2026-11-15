@@ -1,0 +1,500 @@
+
+.home {
+    min-height: 100vh;
+    background: #050814;
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+  }
+  
+  
+  
+  .home__content {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 70px 48px;
+  }
+  
+  .home__content h1 {
+    margin: 0;
+    font-size: 48px;
+    font-weight: 800;
+  }
+  
+  
+.home__content p {
+    margin-top: 14px;
+    color: #9db5cd;
+    font-size: 17px;
+  }
+  
+  @media (max-width: 768px) {
+    .home__content {
+      padding: 45px 20px;
+    }
+  
+    .home__content h1 {
+      font-size: 34px;
+    }
+  }
+  
+  
+.home__hero {
+    padding: 45px 0 60px;
+  }
+  
+  .home__eyebrow {
+    margin: 0 0 14px;
+    color: #50d9ff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+  }
+  
+  .home__hero h1 {
+    max-width: 800px;
+    margin: 0;
+    color: #f5fbff;
+    font-size: clamp(36px, 5vw, 58px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -1.5px;
+  }
+  
+  .home__description {
+    max-width: 650px;
+    margin: 22px 0 32px;
+    color: #9db5cd;
+    font-size: 17px;
+    line-height: 1.7;
+  }
+  
+  .home__search {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: min(100%, 680px);
+    height: 60px;
+    padding: 0 20px;
+    border: 1px solid rgba(64, 191, 255, 0.45);
+    border-radius: 14px;
+    background: rgba(8, 26, 53, 0.9);
+    box-shadow: 0 0 25px rgba(0, 145, 255, 0.08);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .home__search:focus-within {
+    border-color: #51dcff;
+    box-shadow: 0 0 25px rgba(0, 185, 255, 0.18);
+  }
+  
+  .home__search-icon {
+    color: #60dfff;
+    font-size: 28px;
+    line-height: 1;
+  }
+  
+  .home__search input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    font-size: 16px;
+  }
+  
+  .home__search input::placeholder {
+    color: #718ca9;
+  }
+  
+  .home__explore {
+    padding-bottom: 70px;
+  }
+  
+  .home__section-heading h2 {
+    margin: 0;
+    color: #f5fbff;
+    font-size: 30px;
+    font-weight: 800;
+  }
+  
+  .home__section-heading p {
+    margin: 8px 0 0;
+    color: #91a9c3;
+    font-size: 15px;
+  }
+  
+  .home__genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+  
+  .home__genre {
+    padding: 11px 22px;
+    border: 1px solid rgba(70, 135, 187, 0.35);
+    border-radius: 999px;
+    background: #0d1b32;
+    color: #b9cde1;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .home__genre:hover {
+    border-color: #43cfff;
+    color: #ffffff;
+  }
+  
+  .home__genre--active {
+    border-color: #3ed8ff;
+    background: rgba(0, 148, 255, 0.2);
+    color: #7deaff;
+    box-shadow: 0 0 16px rgba(0, 178, 255, 0.18);
+  }
+  
+  .home__movie-placeholder {
+    display: grid;
+    place-items: center;
+    min-height: 260px;
+    margin-top: 35px;
+    border: 1px dashed rgba(66, 157, 213, 0.25);
+    border-radius: 18px;
+    background: rgba(8, 24, 48, 0.45);
+  }
+  
+  .home__movie-placeholder p {
+    color: #6986a4;
+    font-size: 15px;
+  }
+  
+  @media (max-width: 768px) {
+    .home__hero {
+      padding: 20px 0 45px;
+    }
+  
+    .home__description {
+      font-size: 15px;
+    }
+  
+    .home__search {
+      height: 54px;
+    }
+  
+    .home__genres {
+      gap: 8px;
+    }
+  
+    .home__genre {
+      padding: 9px 15px;
+      font-size: 12px;
+    }
+  }
+
+  .home__movie-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 28px;
+    margin-top: 36px;
+  }
+  
+  .home__movie-card {
+    overflow: hidden;
+    border: 1px solid rgba(69, 152, 210, 0.22);
+    border-radius: 16px;
+    background: #0c1830;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  
+  .home__movie-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(69, 207, 255, 0.7);
+    box-shadow: 0 12px 35px rgba(0, 153, 255, 0.16);
+  }
+  
+  .home__poster-wrapper {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 2 / 3;
+    background: #15243b;
+  }
+  
+  .home__poster {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  
+  .home__movie-card:hover .home__poster {
+    transform: scale(1.05);
+  }
+  
+  .home__movie-number {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    padding: 7px 11px;
+    border: 1px solid rgba(100, 214, 255, 0.45);
+    border-radius: 8px;
+    background: rgba(4, 14, 31, 0.85);
+    color: #8aeaff;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  
+  .home__movie-info {
+    padding: 18px;
+  }
+  
+  .home__movie-info h3 {
+    margin: 0;
+    color: #f5fbff;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  
+  .home__movie-info p {
+    margin: 8px 0 0;
+    color: #8ba8c6;
+    font-size: 13px;
+  }
+  
+  .home__empty {
+    padding: 70px 20px;
+    text-align: center;
+  }
+  
+  .home__empty h3 {
+    color: #ffffff;
+    font-size: 22px;
+  }
+  
+  .home__empty p {
+    color: #8ba8c6;
+  }
+  
+  @media (max-width: 1100px) {
+    .home__movie-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .home__movie-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+  
+    .home__movie-info {
+      padding: 12px;
+    }
+  
+    .home__movie-info h3 {
+      font-size: 15px;
+    }
+  }
+  
+  @media (max-width: 420px) {
+    .home__movie-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  
+.home__search {
+    width: min(100%, 960px);
+    height: 64px;
+    padding: 5px 6px 5px 22px;
+    gap: 16px;
+    border: 1px solid #55cfff;
+    border-radius: 999px;
+    background: rgba(14, 31, 58, 0.94);
+    box-shadow:
+      0 0 0 3px rgba(0, 153, 255, 0.07),
+      0 0 28px rgba(0, 179, 255, 0.22);
+  }
+  
+  .home__search-svg {
+    width: 25px;
+    height: 25px;
+    flex-shrink: 0;
+    color: #7ee7ff;
+  }
+  
+  .home__search input {
+    min-width: 0;
+  }
+  
+  .home__search-button {
+    height: 52px;
+    min-width: 140px;
+    padding: 0 28px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #36e5f7, #0acfff);
+    color: #061323;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(0, 218, 255, 0.3);
+    transition: filter 0.2s ease;
+  }
+  
+  .home__search-button:hover {
+    filter: brightness(1.12);
+  }
+  
+  @media (max-width: 768px) {
+    .home__search {
+      height: 56px;
+      padding-left: 15px;
+      gap: 8px;
+    }
+  
+    .home__search-button {
+      height: 44px;
+      min-width: 88px;
+      padding: 0 14px;
+      font-size: 13px;
+    }
+  
+    .home__search-svg {
+      width: 20px;
+      height: 20px;
+    }
+  
+    .home__search input {
+      font-size: 13px;
+    }
+  }
+
+  .home__hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: 70px 38px 85px;
+    border-radius: 22px;
+    background: transparent;
+  }
+  
+  .home__hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  
+    background-image:
+      linear-gradient(
+        90deg,
+        #050814 0%,
+        rgba(5, 8, 20, 0.96) 25%,
+        rgba(5, 8, 20, 0.7) 50%,
+        rgba(5, 8, 20, 0.45) 75%,
+        rgba(5, 8, 20, 0.35) 100%
+      ),
+      url('/images/moviedex-film-hero.png');
+  
+    background-repeat: no-repeat;
+    background-size: cover, 70% auto;
+    background-position: center, right center;
+    opacity: 0.85;
+    pointer-events: none;
+  
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 12%,
+      black 65%,
+      transparent 100%
+    );
+  
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 12%,
+      black 65%,
+      transparent 100%
+    );
+  }
+  
+  .home__hero h1 {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+  }
+  
+  .home__description {
+    position: relative;
+    z-index: 1;
+    max-width: 620px;
+  }
+  
+  .home__search {
+    position: relative;
+    z-index: 2;
+  }
+  
+  @media (max-width: 768px) {
+    .home__hero {
+      padding: 45px 15px 65px;
+    }
+  
+    .home__hero::before {
+      background-size: cover, 110% auto;
+      background-position: center, 70% center;
+      opacity: 0.4;
+    }
+  }
+  
+
+.home__bookmark {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 8px;
+    border: 1px solid rgba(107, 214, 255, 0.55);
+    border-radius: 10px;
+    background: rgba(3, 13, 30, 0.85);
+    color: #8be9ff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .home__bookmark svg {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .home__bookmark:hover {
+    background: rgba(0, 153, 255, 0.25);
+    border-color: #4cddff;
+    transform: scale(1.08);
+  }
+  
+  .home__bookmark--active {
+    background: rgba(0, 180, 255, 0.25);
+    border-color: #3ee4ff;
+    color: #3ee4ff;
+    box-shadow: 0 0 16px rgba(0, 195, 255, 0.3);
+  }
+  
+  .home__bookmark:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+  }
+  
+ 

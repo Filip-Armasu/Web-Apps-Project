@@ -46,7 +46,7 @@ export const movieCards = [
     title: 'Inception',
     number: '002',
     theme: 'city',
-    poster: '/posters/Inception.JPG ',
+    poster: '/posters/Inception.JPG',
   },
   {
     id: 'blade',
