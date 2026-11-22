@@ -17,6 +17,12 @@ app.use(express.urlencoded({ extended: true }));
 const { router: authRouter } = require('./routes/auth');
 app.use('/api', authRouter);
 
+const moviesRouter = require('./routes/movies');
+app.use('/api/movies', moviesRouter);
+
+const reviewsRouter = require('./routes/reviews');
+app.use('/api/reviews', reviewsRouter);
+
 // test route
 app.get('/', (req, res) => {
   res.json({ message: "Movie Watchlist API is running" });
