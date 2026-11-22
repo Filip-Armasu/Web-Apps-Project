@@ -79,14 +79,25 @@ router.post('/login', async (req, res) => {
       }
 
       const token = jwt.sign(
-        { userId: user.id, email: user.email, username: user.username },
+        { id: user.id, email: user.email, username: user.username },
         SECRET_KEY,
         { expiresIn: '1h' }
       );
 
+      res.cookie('token', token, {
+        httpOnly: true, 
+        secure: process.env.NODE_ENV === 'production', 
+        sameSite: 'lax',  
+        maxAge: 60 * 60 * 1000  
+      });
+
       return res.status(200).json({
         message: 'Logged in successfully',
-        token
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email
+        }
       });
     });
   } catch (error) {
@@ -96,13 +107,11 @@ router.post('/login', async (req, res) => {
 });
 
 const requireAuth = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies?.token;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!token) {
     return res.status(401).json({ error: 'Access denied. No token provided.' });
   }
-
-  const token = authHeader.split(' ')[1];
 
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
@@ -112,5 +121,22 @@ const requireAuth = (req, res, next) => {
     return res.status(401).json({ error: 'Invalid or expired token.' });
   }
 };
+
+router.get('/me', requireAuth, (req, res) => {
+  db.get(
+    'SELECT id, username, email FROM users WHERE id = ?',
+    [req.user.id],
+    (err, user) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      return res.json({ user });
+    }
+  );
+});
 
 module.exports = { router, requireAuth };
