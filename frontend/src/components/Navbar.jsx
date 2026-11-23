@@ -7,6 +7,7 @@ function Navbar({
   onDiscover,
   onWatchlist,
   onCollection,
+  onLogout,
 }) {
   return (
     <header className="home__header">
@@ -51,8 +52,16 @@ function Navbar({
         </nav>
 
         <div className="home__profile">
-          <span className="home__profile-avatar">👤</span>
-        </div>
+  <span className="home__profile-avatar">👤</span>
+
+  <button
+    type="button"
+    className="home__logout-btn"
+    onClick={onLogout}
+  >
+    Logout
+  </button>
+</div>
       </div>
     </header>
   )

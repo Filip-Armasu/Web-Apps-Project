@@ -22,6 +22,7 @@ function HomePage({
     onDiscover,
     onWatchlist,
     onCollection,
+    onLogout,
   }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedGenre, setSelectedGenre] = useState('All')
@@ -79,6 +80,7 @@ function HomePage({
   onDiscover={onDiscover}
   onWatchlist={onWatchlist}
   onCollection={onCollection}
+  onLogout={onLogout}
 />
 
       <section className="home__content">

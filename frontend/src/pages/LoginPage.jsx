@@ -7,7 +7,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const LOGIN_API_URL = '/api/login'
 
-function LoginPage({ onBack, onSignUp }) {
+function LoginPage({ onBack, onSignUp, onLoginSuccess }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -78,6 +78,10 @@ function LoginPage({ onBack, onSignUp }) {
       }
 
       setNotice('Login successful!')
+
+      if (onLoginSuccess) {
+        onLoginSuccess(data.user)
+      }
 
     } catch (error) {
       setNotice('Unable to connect to the server. Please try again.')

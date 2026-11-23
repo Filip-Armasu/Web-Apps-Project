@@ -8,6 +8,7 @@ function CollectionPage({
   onDiscover,
   onWatchlist,
   onRemove,
+  onLogout,
 }) {
   const watchedMovies = movieCards.filter((movie) =>
     collection.includes(movie.id)
@@ -19,6 +20,7 @@ function CollectionPage({
         activePage="collection"
         onDiscover={onDiscover}
         onWatchlist={onWatchlist}
+        onLogout={onLogout}
       />
 
       <main className="collection">

@@ -1,5 +1,4 @@
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import SignUpPage from './pages/SignUpPage'
@@ -19,7 +18,51 @@ function readSavedIds(key) {
 }
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home')
+  const [currentPage, setCurrentPage] = useState('landing')
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+const [user, setUser] = useState(null)
+
+useEffect(() => {
+  async function checkLogin() {
+    try {
+      const response = await fetch('/api/me', {
+        credentials: 'same-origin',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setUser(data.user)
+        setCurrentPage('home')
+      }
+    } catch (error) {
+      console.error('Login check failed:', error)
+    } finally {
+      setIsCheckingAuth(false)
+    }
+  }
+
+  checkLogin()
+}, [])
+
+
+async function handleLogout() {
+  try {
+    const response = await fetch('/api/logout', {
+      method: 'POST',
+      credentials: 'same-origin',
+    })
+
+    if (!response.ok) {
+      throw new Error('Logout failed')
+    }
+
+    setUser(null)
+    setCurrentPage('landing')
+  } catch (error) {
+    console.error('Logout error:', error)
+    alert('Logout failed. Please try again.')
+  }
+}
 
   const [watchlist, setWatchlist] = useState(() =>
     readSavedIds('moviedex-watchlist')
@@ -87,6 +130,10 @@ function App() {
     })
   }
 
+  if (isCheckingAuth) {
+    return <div>Checking login...</div>
+  }
+
   if (currentPage === 'home') {
     return (
       <HomePage
@@ -95,6 +142,7 @@ function App() {
       onDiscover={() => setCurrentPage('home')}
       onWatchlist={() => setCurrentPage('watchlist')}
       onCollection={() => setCurrentPage('collection')}
+      onLogout={handleLogout}
     />
     )
   }
@@ -107,6 +155,7 @@ function App() {
         onMarkWatched={markAsWatched}
         onDiscover={() => setCurrentPage('home')}
         onCollection={() => setCurrentPage('collection')}
+        onLogout={handleLogout}
       />
     )
   }
@@ -118,6 +167,7 @@ function App() {
         onDiscover={() => setCurrentPage('home')}
         onWatchlist={() => setCurrentPage('watchlist')}
         onRemove={removeFromCollection}
+        onLogout={handleLogout}
       />
     )
   }
@@ -127,6 +177,10 @@ function App() {
       <LoginPage
         onBack={() => setCurrentPage('landing')}
         onSignUp={() => setCurrentPage('signup')}
+onLoginSuccess={(loggedInUser) => {
+  setUser(loggedInUser)
+  setCurrentPage('home')
+}}
       />
     )
   }

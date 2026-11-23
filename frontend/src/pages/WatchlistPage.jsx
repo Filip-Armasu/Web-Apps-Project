@@ -9,6 +9,7 @@ function WatchlistPage({
   onMarkWatched,
   onDiscover,
   onCollection,
+  onLogout,
 }) {
   const savedMovies = movieCards.filter((movie) =>
     watchlist.includes(movie.id)
@@ -20,6 +21,7 @@ function WatchlistPage({
         activePage="watchlist"
         onDiscover={onDiscover}
         onCollection={onCollection}
+        onLogout={onLogout} 
       />
   
       <main className="watchlist">
