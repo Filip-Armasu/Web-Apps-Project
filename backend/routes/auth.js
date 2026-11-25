@@ -79,7 +79,7 @@ router.post('/login', async (req, res) => {
       }
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, username: user.username },
+        { id: user.id, email: user.email, username: user.username, role: user.role },
         SECRET_KEY,
         { expiresIn: '1h' }
       );
@@ -104,6 +104,14 @@ router.post('/login', async (req, res) => {
     console.error(error);
     return res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+router.post('/logout', (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    sameSite: 'lax'
+  });
+  return res.status(200).json({ message: 'Logged out successfully.' });
 });
 
 const requireAuth = (req, res, next) => {

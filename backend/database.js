@@ -43,6 +43,18 @@ db.serialize(() => {
     FOREIGN KEY(user_id) REFERENCES users(id),
     FOREIGN KEY(movie_id) REFERENCES movies(id)
   )`);
+
+  // 4. Watchlist Entity
+  db.run(`CREATE TABLE IF NOT EXISTS user_movies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    movie_id INTEGER NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('watchlist', 'watched')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, movie_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE
+  )`);
 });
 
 module.exports = db;
