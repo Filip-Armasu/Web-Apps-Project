@@ -28,6 +28,9 @@ app.use('/api/movies', moviesRouter);
 const reviewsRouter = require('./routes/reviews');
 app.use('/api/reviews', reviewsRouter);
 
+const watchlistRouter = require('./routes/watchlist');
+app.use('/api/watchlist', watchlistRouter);
+
 // test route
 app.get('/', (req, res) => {
   res.json({ message: "Movie Watchlist API is running" });

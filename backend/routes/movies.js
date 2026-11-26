@@ -10,6 +10,10 @@ router.post('/', (req, res) => {
     return res.status(401).json({ error: 'Unauthorized.' });
   }
 
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Forbidden. Only admins can add movies.' });
+  }
+
   const { title, director, release_year, genre, description } = req.body;
 
   if (!title || String(title).trim() === '') {
@@ -277,26 +281,43 @@ router.post('/:id/reviews', (req, res) => {
       return res.status(404).json({ error: 'Movie not found.' });
     }
 
-    const insertSql = `
-      INSERT INTO reviews (movie_id, user_id, rating, comment)
-      VALUES (?, ?, ?, ?)
+    const watchedSql = `
+      SELECT id FROM user_movies
+      WHERE user_id = ? AND movie_id = ? AND status = 'watched'
     `;
 
-    db.run(insertSql, [movieId, req.user.id, ratingNumber, sanitizedComment], function (err) {
+    db.get(watchedSql, [req.user.id, movieId], (err, watchedEntry) => {
       if (err) {
-        if (err.code === 'SQLITE_CONSTRAINT') {
-          return res.status(409).json({ error: 'You have already reviewed this movie.' });
-        }
         console.error(err);
         return res.status(500).json({ error: 'Internal server error' });
       }
+      if (!watchedEntry) {
+        return res.status(403).json({
+          error: 'You can only review movies you have marked as watched.'
+        });
+      }
 
-      db.get('SELECT * FROM reviews WHERE id = ?', [this.lastID], (err, review) => {
+      const insertSql = `
+        INSERT INTO reviews (movie_id, user_id, rating, comment)
+        VALUES (?, ?, ?, ?)
+      `;
+
+      db.run(insertSql, [movieId, req.user.id, ratingNumber, sanitizedComment], function (err) {
         if (err) {
+          if (err.code === 'SQLITE_CONSTRAINT') {
+            return res.status(409).json({ error: 'You have already reviewed this movie.' });
+          }
           console.error(err);
           return res.status(500).json({ error: 'Internal server error' });
         }
-        return res.status(201).json({ review });
+
+        db.get('SELECT * FROM reviews WHERE id = ?', [this.lastID], (err, review) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Internal server error' });
+          }
+          return res.status(201).json({ review });
+        });
       });
     });
   });

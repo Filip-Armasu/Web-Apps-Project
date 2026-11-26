@@ -79,7 +79,7 @@ router.post('/login', async (req, res) => {
       }
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, username: user.username },
+        { id: user.id, email: user.email, username: user.username, role: user.role },
         SECRET_KEY,
         { expiresIn: '1h' }
       );
@@ -105,6 +105,8 @@ router.post('/login', async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+
 
 const requireAuth = (req, res, next) => {
   const token = req.cookies?.token;
