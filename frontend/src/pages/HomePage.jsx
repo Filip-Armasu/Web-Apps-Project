@@ -1,8 +1,13 @@
 
 import { useEffect, useState } from 'react';
-import { movieCards } from '../data/movieCards'
+import { getMovies } from '../api/movieApi'
+import {
+  getMovieReviews,
+  deleteReview,
+} from '../api/reviewApi'
 import './HomePage.css'
 import Navbar from '../components/Navbar'
+import ReviewFolder from '../components/ReviewFolder'
 
 const genres = [
   'All',
@@ -17,61 +22,265 @@ const genres = [
 
 
 function HomePage({
-    watchlist,
-    onToggleWatchlist,
-    onDiscover,
-    onWatchlist,
-    onCollection,
-    onLogout,
-  }) {
+  userId,
+  watchlist,
+  collection,
+  isUpdating,
+  onToggleWatchlist,
+  onDiscover,
+  onWatchlist,
+  onCollection,
+  onLogout,
+  onSessionExpired,
+
+}) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedGenre, setSelectedGenre] = useState('All')
   const [selectedMovie, setSelectedMovie] = useState(null);
-  
+
+// Review folder state
+const [isReviewFolderOpen, setIsReviewFolderOpen] =
+  useState(false)
+
+// Community review states
+const [reviewData, setReviewData] = useState({
+  movieId: null,
+  reviews: [],
+  isLoading: true,
+  error: '',
+})
+
+const [reviewReloadKey, setReviewReloadKey] = useState(0)
+// Track the review currently being deleted
+const [deletingReviewId, setDeletingReviewId] =
+  useState(null)
+
+const selectedMovieId = selectedMovie?.id
+
+// Prevent reviews from another movie being displayed
+const isCurrentReviewData =
+  reviewData.movieId === selectedMovieId
+
+const movieReviews = isCurrentReviewData
+  ? reviewData.reviews
+  : []
+
+const isLoadingReviews =
+  !isCurrentReviewData || reviewData.isLoading
+
+const reviewError = isCurrentReviewData
+  ? reviewData.error
+  : ''
+
+// Calculate the average community rating
+const averageRating = movieReviews.length > 0
+  ? movieReviews.reduce(
+      (sum, review) => sum + Number(review.rating),
+      0
+    ) / movieReviews.length
+  : null
+
+// Open movie details with the review folder closed
+const openMovieDetails = (movie) => {
+  setIsReviewFolderOpen(false)
+  setSelectedMovie(movie)
+}
+
+// Close the entire movie archive
+const closeMovieDetails = () => {
+  setIsReviewFolderOpen(false)
+  setSelectedMovie(null)
+}
+
+  const [filteredMovies, setFilteredMovies] = useState([])
+const [isLoading, setIsLoading] = useState(true)
+const [error, setError] = useState('')
+
+
   useEffect(() => {
     if (!selectedMovie) return;
-  
+
     // Save the previous scroll setting
     const previousOverflow = document.body.style.overflow;
-  
+
     // Prevent background scrolling
     document.body.style.overflow = 'hidden';
-  
+
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
-        setSelectedMovie(null);
+        if (isReviewFolderOpen) {
+          setIsReviewFolderOpen(false)
+        } else {
+          closeMovieDetails()
+        }
       }
-    };
-  
+    }
+
     window.addEventListener('keydown', handleKeyDown);
-  
+
     return () => {
       // Restore scrolling when the modal closes
       document.body.style.overflow = previousOverflow;
-  
+
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedMovie]);
-  
-  const filteredMovies = movieCards.filter((movie) => {
-    // Search movies by title
-    const matchesSearch = movie.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase().trim());
-  
-    // Get genres directly from movieCards.js
-    const movieGenreList = (movie.genre || '')
-      .split('/')
-      .map((genre) => genre.trim());
-  
-    // Check selected genre
-    const matchesGenre =
-      selectedGenre === 'All' ||
-      movieGenreList.includes(selectedGenre);
-  
-    return matchesSearch && matchesGenre;
-  });
- 
+  }, [selectedMovie, isReviewFolderOpen])
+  // Delete the current user's own community review
+const handleDeleteCommunityReview = async (reviewId) => {
+
+  // Prevent duplicate deletion requests
+  if (deletingReviewId !== null) return
+
+  // Find the selected review
+  const targetReview = movieReviews.find(
+    (review) => review.id === reviewId
+  )
+
+  // Only allow users to delete their own reviews
+  if (
+    !targetReview ||
+    userId == null ||
+    targetReview.user_id !== userId
+  ) {
+    return
+  }
+
+  // Ask for confirmation
+  const confirmed = window.confirm(
+    'Are you sure you want to delete your review? This action cannot be undone.'
+  )
+
+  if (!confirmed) return
+
+  setDeletingReviewId(reviewId)
+
+  try {
+
+    // Delete the review from the backend database
+    await deleteReview(reviewId)
+
+    // Fetch updated community reviews
+    setReviewReloadKey(
+      (previous) => previous + 1
+    )
+
+  } catch (error) {
+
+    // Handle expired login sessions
+    if (error.status === 401) {
+      onSessionExpired()
+      return
+    }
+
+    // Display deletion errors
+    window.alert(
+      error.message || 'Unable to delete your review.'
+    )
+
+  } finally {
+
+    setDeletingReviewId(null)
+
+  }
+}
+
+// Fetch community reviews for the selected movie
+useEffect(() => {
+  if (!selectedMovieId) return
+
+  const controller = new AbortController()
+
+  setReviewData({
+    movieId: selectedMovieId,
+    reviews: [],
+    isLoading: true,
+    error: '',
+  })
+
+  const fetchReviews = async () => {
+    try {
+      const reviews = await getMovieReviews(
+        selectedMovieId,
+        controller.signal
+      )
+
+      if (controller.signal.aborted) return
+
+      setReviewData({
+        movieId: selectedMovieId,
+        reviews,
+        isLoading: false,
+        error: '',
+      })
+
+    } catch (error) {
+      if (controller.signal.aborted) return
+
+      if (error.status === 401) {
+        onSessionExpired()
+        return
+      }
+
+      setReviewData({
+        movieId: selectedMovieId,
+        reviews: [],
+        isLoading: false,
+        error: error.message || 'Unable to load reviews.',
+      })
+    }
+  }
+
+  fetchReviews()
+
+  return () => {
+    controller.abort()
+  }
+
+}, [
+  selectedMovieId,
+  reviewReloadKey,
+  onSessionExpired,
+])
+
+  // Fetch movies from the backend database
+useEffect(() => {
+  const controller = new AbortController()
+
+  setIsLoading(true)
+  setError('')
+
+  const timer = setTimeout(async () => {
+    try {
+      const movies = await getMovies({
+        search: searchQuery,
+        genre: selectedGenre,
+        signal: controller.signal,
+      })
+
+      if (!controller.signal.aborted) {
+        setFilteredMovies(movies)
+      }
+    } catch (error) {
+      if (controller.signal.aborted) return
+
+      if (error.status === 401) {
+        onSessionExpired()
+      } else {
+        setFilteredMovies([])
+        setError(error.message)
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setIsLoading(false)
+      }
+    }
+  }, 300)
+
+  return () => {
+    clearTimeout(timer)
+    controller.abort()
+  }
+}, [searchQuery, selectedGenre, onSessionExpired])
 
   return (
     <main className="home">
@@ -96,7 +305,7 @@ function HomePage({
             and build your own MovieDex collection.
           </p>
 
-          
+
 <form
   className="home__search"
   onSubmit={(event) => event.preventDefault()}
@@ -156,15 +365,29 @@ function HomePage({
             ))}
           </div>
 
+          {isLoading && (
+  <div className="home__empty" role="status">
+    <h3>Loading movies...</h3>
+    <p>Connecting to the MovieDex database.</p>
+  </div>
+)}
+
+{error && (
+  <div className="home__empty" role="alert">
+    <h3>Unable to load movies</h3>
+    <p>{error}</p>
+  </div>
+)}
+
           <div className="home__movie-grid">
-            {filteredMovies.map((movie) => (
+          {!isLoading && !error && filteredMovies.map((movie) => (
               <article className="home__movie-card" key={movie.id}>
-                
+
                 <div className="home__poster-wrapper">
   <button
     type="button"
     className="home__poster-button"
-    onClick={() => setSelectedMovie(movie)}
+    onClick={() => openMovieDetails(movie)}
     aria-label={`View details for ${movie.title}`}
   >
     <img
@@ -186,6 +409,7 @@ function HomePage({
         : ''
     }`}
     onClick={() => onToggleWatchlist(movie.id)}
+    disabled={isUpdating || collection.includes(movie.id)}
     aria-label={
       watchlist.includes(movie.id)
         ? `Remove ${movie.title} from watchlist`
@@ -228,20 +452,30 @@ function HomePage({
 
           {selectedMovie && (
   <div
-    className="movie-modal-overlay"
-    onClick={() => setSelectedMovie(null)}
+    className={`movie-modal-overlay ${
+      isReviewFolderOpen
+        ? 'movie-modal-overlay--expanded'
+        : ''
+    }`}
+    onClick={closeMovieDetails}
   >
     <div
-      className="movie-modal"
+      className={`movie-archive ${
+        isReviewFolderOpen
+          ? 'movie-archive--open'
+          : ''
+      }`}
       role="dialog"
       aria-modal="true"
-      aria-label={`${selectedMovie.title} details`}
-      onClick={(e) => e.stopPropagation()}
+      aria-label={`${selectedMovie.title} archive`}
+      onClick={(event) => event.stopPropagation()}
     >
+      <div className="movie-modal">
+
       <button
         type="button"
         className="movie-modal__close"
-        onClick={() => setSelectedMovie(null)}
+        onClick={closeMovieDetails}
         aria-label="Close movie details"
       >
         ×
@@ -284,6 +518,37 @@ function HomePage({
         {selectedMovie.year || 'Year unavailable'}
       </p>
 
+      {/* Community average rating */}
+<div className="movie-modal__community-rating">
+  {isLoadingReviews ? (
+    <span className="movie-modal__rating-muted">
+      Loading rating...
+    </span>
+  ) : reviewError ? (
+    <span className="movie-modal__rating-muted">
+      Rating unavailable
+    </span>
+  ) : averageRating !== null ? (
+    <>
+      <span className="movie-modal__rating-star">
+        ★
+      </span>
+
+      <strong>
+        {averageRating.toFixed(1)}
+      </strong>
+
+      <span className="movie-modal__rating-count">
+        / 5 ({movieReviews.length})
+      </span>
+    </>
+  ) : (
+    <span className="movie-modal__rating-muted">
+      ☆ No ratings yet
+    </span>
+  )}
+</div>
+
       <div className="movie-modal__genres">
   {(selectedMovie.genre || 'Movie')
     .split('/')
@@ -313,30 +578,89 @@ function HomePage({
     </p>
   </div>
 
-  {/* Footer */}
-  <div className="movie-modal__footer">
-    <span className="movie-modal__footer-label">
-      MOVIE ARCHIVE
-    </span>
 
-    <button
-      type="button"
-      className="movie-modal__watchlist"
-      onClick={() => onToggleWatchlist(selectedMovie.id)}
-    >
-      {watchlist.includes(selectedMovie.id)
-        ? '✓ Remove from Watchlist'
-        : '+ Add to Watchlist'}
-    </button>
-  </div>
+{/* Footer */}
+<div className="movie-modal__footer">
+  <span className="movie-modal__footer-label">
+    MOVIE ARCHIVE
+  </span>
+
+  <button
+    type="button"
+    className="movie-modal__watchlist"
+    onClick={() => onToggleWatchlist(selectedMovie.id)}
+    disabled={isUpdating || collection.includes(selectedMovie.id)}
+  >
+    {collection.includes(selectedMovie.id)
+      ? '✓ Already Watched'
+      : isUpdating
+        ? 'Updating...'
+        : watchlist.includes(selectedMovie.id)
+          ? '✓ Remove from Watchlist'
+          : '+ Add to Watchlist'}
+  </button>
+
+  {/* View Reviews button */}
+  <button
+  type="button"
+  className={`movie-modal__reviews-button ${
+    isReviewFolderOpen
+      ? 'movie-modal__reviews-button--hidden'
+      : ''
+  }`}
+  aria-expanded={isReviewFolderOpen}
+  disabled={isReviewFolderOpen}
+  onClick={() => setIsReviewFolderOpen(true)}
+>
+  VIEW REVIEWS »
+</button>
+
 </div>
-      </div>
-    </div>
-  </div>
+{/* End of footer */}
+
+</div>
+{/* End of movie-modal__back */}
+
+</div>
+{/* End of movie-modal__card */}
+
+</div>
+{/* End of movie-modal */}
+
+{/* Unfolding review archive */}
+<div
+  className="movie-archive__leaf"
+  inert={!isReviewFolderOpen}
+  aria-hidden={!isReviewFolderOpen}
+>
+<ReviewFolder
+  key={selectedMovie.id}
+  movie={selectedMovie}
+  reviews={movieReviews}
+  isLoading={isLoadingReviews}
+  error={reviewError}
+
+  userId={userId}
+
+  onDeleteReview={handleDeleteCommunityReview}
+
+  deletingReviewId={deletingReviewId}
+
+  onRetry={() =>
+    setReviewReloadKey((previous) => previous + 1)
+  }
+
+  onClose={() => setIsReviewFolderOpen(false)}
+/>
+</div>
+
+</div>
+{/* End of movie-archive */}
+
+</div>
 )}
 
-
-          {filteredMovies.length === 0 && (
+{!isLoading && !error && filteredMovies.length === 0 && (
             <div className="home__empty">
               <h3>No movies found</h3>
               <p>Try another title or genre.</p>

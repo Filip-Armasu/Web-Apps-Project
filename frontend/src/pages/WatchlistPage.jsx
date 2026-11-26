@@ -1,19 +1,19 @@
 
-import { movieCards } from '../data/movieCards'
+
 import './WatchlistPage.css'
 import Navbar from '../components/Navbar'
 
 function WatchlistPage({
   watchlist,
+  isUpdating,
   onRemove,
   onMarkWatched,
   onDiscover,
   onCollection,
   onLogout,
 }) {
-  const savedMovies = movieCards.filter((movie) =>
-    watchlist.includes(movie.id)
-  )
+  const savedMovies = watchlist
+
 
   return (
     <>
@@ -21,9 +21,9 @@ function WatchlistPage({
         activePage="watchlist"
         onDiscover={onDiscover}
         onCollection={onCollection}
-        onLogout={onLogout} 
+        onLogout={onLogout}
       />
-  
+
       <main className="watchlist">
       <header className="watchlist__header">
         <h1>My Watchlist</h1>
@@ -54,21 +54,24 @@ function WatchlistPage({
                 <h3>{movie.title}</h3>
 
                 <div className="watchlist__actions">
-                  <button
-                    type="button"
-                    className="watchlist__watched"
-                    onClick={() => onMarkWatched(movie.id)}
-                  >
-                    ✓ Mark as Watched
-                  </button>
 
-                  <button
-                    type="button"
-                    className="watchlist__remove"
-                    onClick={() => onRemove(movie.id)}
-                  >
-                    Remove
-                  </button>
+                <button
+  type="button"
+  className="watchlist__watched"
+  onClick={() => onMarkWatched(movie.id)}
+  disabled={isUpdating}
+>
+  {isUpdating ? 'Updating...' : '✓ Mark as Watched'}
+</button>
+
+<button
+  type="button"
+  className="watchlist__remove"
+  onClick={() => onRemove(movie.id)}
+  disabled={isUpdating}
+>
+  Remove
+</button>
                 </div>
               </div>
             </article>

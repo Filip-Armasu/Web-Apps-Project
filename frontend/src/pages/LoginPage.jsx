@@ -30,9 +30,9 @@ function LoginPage({ onBack, onSignUp, onLoginSuccess }) {
 
   function handleRememberMeChange(event) {
     const checked = event.target.checked
-  
+
     setRememberMe(checked)
-  
+
     if (!checked) {
       try {
         localStorage.removeItem(REMEMBER_EMAIL_KEY)
@@ -104,24 +104,24 @@ function LoginPage({ onBack, onSignUp, onLoginSuccess }) {
       }
 
       // Save or remove the remembered email after successful login
-try {
-  if (rememberMe) {
-    localStorage.setItem(
-      REMEMBER_EMAIL_KEY,
-      email.trim()
-    )
-  } else {
-    localStorage.removeItem(REMEMBER_EMAIL_KEY)
-  }
-} catch (error) {
-  console.warn('Unable to save remembered email:', error)
-}
+      try {
+        if (rememberMe) {
+          localStorage.setItem(
+            REMEMBER_EMAIL_KEY,
+            email.trim()
+          )
+        } else {
+          localStorage.removeItem(REMEMBER_EMAIL_KEY)
+        }
+      } catch (error) {
+        console.warn('Unable to save remembered email:', error)
+      }
 
-setNotice('Login successful!')
+      setNotice('Login successful!')
 
-if (onLoginSuccess) {
-  onLoginSuccess(data.user)
-}
+      if (onLoginSuccess) {
+        onLoginSuccess(data.user)
+      }
 
     } catch (error) {
       setNotice('Unable to connect to the server. Please try again.')
@@ -240,15 +240,15 @@ if (onLoginSuccess) {
           </div>
 
           <div className="login__row">
-          <label className="login__remember">
-  <input
-    type="checkbox"
-    checked={rememberMe}
-    onChange={handleRememberMeChange}
-    disabled={isLoading}
-  />
-  Remember my email
-</label>
+            <label className="login__remember">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={handleRememberMeChange}
+                disabled={isLoading}
+              />
+              Remember my email
+            </label>
 
             <button
               className="login__link"
