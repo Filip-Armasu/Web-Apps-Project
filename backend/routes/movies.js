@@ -76,32 +76,66 @@ router.post('/', (req, res) => {
 
 // 2. READ: GET /api/movies
 router.get('/', (req, res) => {
+  // Authentication check
   if (!req.user?.id) {
-    return res.status(401).json({ error: 'Unauthorized.' });
+    return res.status(401).json({
+      error: 'Unauthorized.'
+    });
   }
 
-  const { genre } = req.query;
-  let sql = 'SELECT * FROM movies WHERE user_id = ?';
-  const params = [req.user.id];
+  const { search, genre } = req.query;
 
-  if (genre !== undefined) {
-    if (typeof genre !== 'string') {
-      return res.status(400).json({ error: 'Genre must be a text value.' });
-    }
-    const trimmedGenre = genre.trim();
-    if (trimmedGenre !== '') {
-      sql += ' AND genre = ?';
-      params.push(trimmedGenre);
-    }
+  // Validate query parameters
+  if (search !== undefined && typeof search !== 'string') {
+    return res.status(400).json({
+      error: 'Search must be a text value.'
+    });
   }
 
-  sql += ' ORDER BY id DESC';
+  if (genre !== undefined && typeof genre !== 'string') {
+    return res.status(400).json({
+      error: 'Genre must be a text value.'
+    });
+  }
+
+  // Shared movie catalog
+  let sql = 'SELECT * FROM movies WHERE 1 = 1';
+  const params = [];
+
+  // Search by movie title
+  if (search && search.trim()) {
+    sql += ' AND instr(LOWER(title), LOWER(?)) > 0';
+    params.push(search.trim());
+  }
+
+  // Filter by genre
+  if (
+    genre &&
+    genre.trim() &&
+    genre.trim().toLowerCase() !== 'all'
+  ) {
+    sql += `
+      AND instr(
+        '/' || LOWER(REPLACE(genre, ' ', '')) || '/',
+        '/' || LOWER(REPLACE(?, ' ', '')) || '/'
+      ) > 0
+    `;
+
+    params.push(genre.trim());
+  }
+
+  // Keep the original movie order
+  sql += ' ORDER BY id ASC';
 
   db.all(sql, params, (err, movies) => {
     if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error(err.message);
+
+      return res.status(500).json({
+        error: 'Internal server error.'
+      });
     }
+
     return res.status(200).json({ movies });
   });
 });
@@ -249,9 +283,8 @@ router.post('/:id/reviews', (req, res) => {
   if (!Number.isInteger(movieId) || movieId <= 0) {
     return res.status(400).json({ error: 'Invalid movie ID.' });
   }
-
-  const ratingNumber = Number(req.body.rating);
-  const rawComment = req.body.comment;
+  const { rating: ratingNumber, comment: rawComment } =
+  req.body || {};
 
   if (!Number.isInteger(ratingNumber) || ratingNumber < 1 || ratingNumber > 5) {
     return res.status(400).json({ error: 'Rating must be an integer between 1 and 5.' });
@@ -261,15 +294,24 @@ router.post('/:id/reviews', (req, res) => {
     return res.status(400).json({ error: 'Comment must be a string.' });
   }
 
-  const cleanedComment =
-    typeof rawComment === 'string'
-      ? rawComment.trim().replace(/[<>]/g, '')
-      : '';
-  const sanitizedComment = cleanedComment.length > 0 ? cleanedComment : null;
+ // Validate the original comment length
+if (
+  typeof rawComment === 'string' &&
+  rawComment.length > 1000
+) {
+  return res.status(400).json({
+    error: 'Comment must be 1000 characters or fewer.'
+  });
+}
 
-  if (sanitizedComment && sanitizedComment.length > 1000) {
-    return res.status(400).json({ error: 'Comment must be 1000 characters or fewer.' });
-  }
+// Sanitize the comment
+const cleanedComment =
+  typeof rawComment === 'string'
+    ? rawComment.trim().replace(/[<>]/g, '')
+    : '';
+
+const sanitizedComment =
+  cleanedComment.length > 0 ? cleanedComment : null;
 
   // Verify the target movie exists
   db.get('SELECT id FROM movies WHERE id = ?', [movieId], (err, movie) => {

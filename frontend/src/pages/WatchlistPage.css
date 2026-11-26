@@ -1,0 +1,122 @@
+
+.watchlist {
+    min-height: 100vh;
+    padding: 50px max(24px, calc((100vw - 1300px) / 2));
+    background: #050814;
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+  }
+  
+  .watchlist__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .watchlist__header h1 {
+    margin: 0;
+    font-size: 42px;
+  }
+  
+  .watchlist__header button,
+  .watchlist__empty button {
+    padding: 12px 20px;
+    border: 1px solid #35d8ff;
+    border-radius: 12px;
+    background: rgba(0, 145, 255, 0.12);
+    color: #75e7ff;
+    font: inherit;
+    cursor: pointer;
+  }
+  
+  .watchlist__description {
+    margin: 14px 0 35px;
+    color: #9db5cd;
+  }
+  
+  .watchlist__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+  }
+  
+  .watchlist__card {
+    overflow: hidden;
+    border: 1px solid rgba(69, 152, 210, 0.3);
+    border-radius: 16px;
+    background: #0c1830;
+  }
+  
+  .watchlist__card img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+  }
+  
+  .watchlist__info {
+    padding: 16px;
+  }
+  
+  .watchlist__info h3 {
+    margin: 0 0 16px;
+    font-size: 18px;
+  }
+  
+  .watchlist__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  
+  .watchlist__actions button {
+    padding: 11px;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .watchlist__watched {
+    border: none;
+    background: #32d5f5;
+    color: #061323;
+  }
+  
+  .watchlist__remove {
+    border: 1px solid #42617c;
+    background: transparent;
+    color: #c5d8e8;
+  }
+  
+  .watchlist__empty {
+    padding: 90px 20px;
+    border: 1px dashed #31516d;
+    border-radius: 18px;
+    text-align: center;
+  }
+  
+  .watchlist__empty p {
+    margin-bottom: 24px;
+    color: #9db5cd;
+  }
+  
+  @media (max-width: 900px) {
+    .watchlist__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .watchlist__header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  
+    .watchlist__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  

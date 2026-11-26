@@ -106,13 +106,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/logout', (req, res) => {
-  res.clearCookie('token', {
-    httpOnly: true,
-    sameSite: 'lax'
-  });
-  return res.status(200).json({ message: 'Logged out successfully.' });
-});
+
 
 const requireAuth = (req, res, next) => {
   const token = req.cookies?.token;
@@ -147,4 +141,16 @@ router.get('/me', requireAuth, (req, res) => {
   );
 });
 
+// Logout: clear authentication cookie
+router.post('/logout', (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+
+  return res.status(200).json({
+    message: 'Logged out successfully',
+  });
+});
 module.exports = { router, requireAuth };

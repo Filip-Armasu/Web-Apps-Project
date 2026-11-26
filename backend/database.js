@@ -21,17 +21,18 @@ db.serialize(() => {
     avatar TEXT
   )`);
 
-  // 2. Movies Entity
-  db.run(`CREATE TABLE IF NOT EXISTS movies (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    director TEXT,
-    release_year INTEGER,
-    genre TEXT,
-    description TEXT,
-    user_id INTEGER,
-    FOREIGN KEY(user_id) REFERENCES users(id)
-  )`);
+ // 2. Movies Entity
+db.run(`CREATE TABLE IF NOT EXISTS movies (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  director TEXT,
+  release_year INTEGER,
+  genre TEXT,
+  description TEXT,
+  poster_url TEXT,
+  user_id INTEGER,
+  FOREIGN KEY(user_id) REFERENCES users(id)
+)`);
 
   // 3. Reviews Entity
   db.run(`CREATE TABLE IF NOT EXISTS reviews (
@@ -43,6 +44,16 @@ db.serialize(() => {
     FOREIGN KEY(user_id) REFERENCES users(id),
     FOREIGN KEY(movie_id) REFERENCES movies(id)
   )`);
+
+  // Prevent duplicate reviews by the same user
+db.run(`
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_reviews_user_movie
+  ON reviews(user_id, movie_id)
+`, (err) => {
+  if (err) {
+    console.error('Error creating review index:', err.message);
+  }
+});
 
   // 4. Watchlist Entity
   db.run(`CREATE TABLE IF NOT EXISTS user_movies (

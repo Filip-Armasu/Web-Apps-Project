@@ -7,14 +7,40 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const LOGIN_API_URL = '/api/login'
 
-function LoginPage({ onBack, onSignUp }) {
-  const [email, setEmail] = useState('')
+const REMEMBER_EMAIL_KEY = 'moviedex-remembered-email'
+
+function getRememberedEmail() {
+  try {
+    return localStorage.getItem(REMEMBER_EMAIL_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+
+function LoginPage({ onBack, onSignUp, onLoginSuccess }) {
+  const [email, setEmail] = useState(() => getRememberedEmail())
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
+  const [rememberMe, setRememberMe] = useState(
+    () => Boolean(getRememberedEmail())
+  )
   const [errors, setErrors] = useState({})
   const [notice, setNotice] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  function handleRememberMeChange(event) {
+    const checked = event.target.checked
+
+    setRememberMe(checked)
+
+    if (!checked) {
+      try {
+        localStorage.removeItem(REMEMBER_EMAIL_KEY)
+      } catch (error) {
+        console.warn('Unable to remove remembered email:', error)
+      }
+    }
+  }
 
   function validateForm() {
     const nextErrors = {}
@@ -77,7 +103,25 @@ function LoginPage({ onBack, onSignUp }) {
         return
       }
 
+      // Save or remove the remembered email after successful login
+      try {
+        if (rememberMe) {
+          localStorage.setItem(
+            REMEMBER_EMAIL_KEY,
+            email.trim()
+          )
+        } else {
+          localStorage.removeItem(REMEMBER_EMAIL_KEY)
+        }
+      } catch (error) {
+        console.warn('Unable to save remembered email:', error)
+      }
+
       setNotice('Login successful!')
+
+      if (onLoginSuccess) {
+        onLoginSuccess(data.user)
+      }
 
     } catch (error) {
       setNotice('Unable to connect to the server. Please try again.')
@@ -200,11 +244,10 @@ function LoginPage({ onBack, onSignUp }) {
               <input
                 type="checkbox"
                 checked={rememberMe}
-                onChange={(event) =>
-                  setRememberMe(event.target.checked)
-                }
+                onChange={handleRememberMeChange}
+                disabled={isLoading}
               />
-              Remember Me
+              Remember my email
             </label>
 
             <button
