@@ -8,6 +8,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const path = require('path');
+
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 app.use(
   cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
