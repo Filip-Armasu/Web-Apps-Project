@@ -4,6 +4,23 @@ const db = require('../database');
 const { requireAuth } = require('./auth');
 router.use(requireAuth);
 
+function isValidPosterUrl(value) {
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (trimmed === '') return true; // treated as optional / null
+
+  if (trimmed.startsWith('/')) {
+    return !trimmed.startsWith('//');
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 // 1. CREATE: POST /api/movies
 router.post('/', (req, res) => {
   if (!req.user?.id) {
@@ -14,7 +31,7 @@ router.post('/', (req, res) => {
     return res.status(403).json({ error: 'Forbidden. Only admins can add movies.' });
   }
 
-  const { title, director, release_year, genre, description } = req.body;
+  const { title, director, release_year, genre, description, poster_url } = req.body;
 
   if (!title || String(title).trim() === '') {
     return res.status(400).json({ error: 'Title is required.' });
@@ -45,17 +62,28 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'Director, genre, and description must be text.' });
   }
 
+  let cleanPosterUrl = null;
+  if (poster_url !== undefined && poster_url !== null) {
+    if (!isValidPosterUrl(poster_url)) {
+      return res.status(400).json({ error: 'Poster URL must be a valid http or https URL.' });
+    }
+    const trimmedPoster = String(poster_url).trim();
+    cleanPosterUrl = trimmedPoster === '' ? null : trimmedPoster;
+  }
+
   const sql = `
-    INSERT INTO movies (title, director, release_year, genre, description, user_id)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO movies (title, director, release_year, genre, description, poster_url, user_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
+
   const params = [
     String(title).trim(),
     cleanDirector,
     parsedYear,
     cleanGenre,
     cleanDescription,
-    req.user.id
+    cleanPosterUrl,
+    req.user.id,
   ];
 
   db.run(sql, params, function (err) {
@@ -74,15 +102,8 @@ router.post('/', (req, res) => {
   });
 });
 
-// 2. READ: GET /api/movies
+// 2. READ: GET /api/movies (public catalog)
 router.get('/', (req, res) => {
-  // Authentication check
-  if (!req.user?.id) {
-    return res.status(401).json({
-      error: 'Unauthorized.'
-    });
-  }
-
   const { search, genre } = req.query;
 
   // Validate query parameters
@@ -120,7 +141,6 @@ router.get('/', (req, res) => {
         '/' || LOWER(REPLACE(?, ' ', '')) || '/'
       ) > 0
     `;
-
     params.push(genre.trim());
   }
 
@@ -130,13 +150,17 @@ router.get('/', (req, res) => {
   db.all(sql, params, (err, movies) => {
     if (err) {
       console.error(err.message);
-
       return res.status(500).json({
         error: 'Internal server error.'
       });
     }
 
-    return res.status(200).json({ movies });
+    const formattedMovies = movies.map((movie) => ({
+      ...movie,
+      poster_url: movie.poster_url && movie.poster_url.trim() !== '' ? movie.poster_url.trim() : null
+    }));
+
+    return res.status(200).json({ movies: formattedMovies });
   });
 });
 
@@ -146,23 +170,25 @@ router.patch('/:id', (req, res) => {
     return res.status(401).json({ error: 'Unauthorized.' });
   }
 
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Forbidden. Admin access required.' });
+  }
+
   const movieId = Number(req.params.id);
   if (!Number.isInteger(movieId) || movieId <= 0) {
     return res.status(400).json({ error: 'Invalid movie ID.' });
   }
 
-  const { title, director, release_year, genre, description } = req.body;
+  const { title, director, release_year, genre, description, poster_url } = req.body;
 
   db.get('SELECT * FROM movies WHERE id = ?', [movieId], (err, movie) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: 'Internal server error' });
     }
+
     if (!movie) {
       return res.status(404).json({ error: 'Movie not found.' });
-    }
-    if (movie.user_id !== req.user.id) {
-      return res.status(403).json({ error: 'Forbidden. You do not own this movie.' });
     }
 
     let updatedTitle = movie.title;
@@ -181,54 +207,79 @@ router.patch('/:id', (req, res) => {
         const yearNum = Number(release_year);
         const maxYear = new Date().getFullYear() + 5;
         if (!Number.isInteger(yearNum) || yearNum < 1888 || yearNum > maxYear) {
-          return res.status(400).json({ error: `Release year must be a valid integer between 1888 and ${maxYear}.` });
+          return res.status(400).json({
+            error: `Release year must be a valid integer between 1888 and ${maxYear}.`
+          });
         }
         updatedYear = yearNum;
       }
     }
 
-    const cleanOptionalField = (val, currentVal, label) => {
-      if (val === undefined) return currentVal;
-      if (val === null) return null;
-      if (typeof val !== 'string') return Symbol('invalid');
+    const cleanOptionalText = (val, currentVal) => {
+      if (val === undefined) return { ok: true, value: currentVal };
+      if (val === null) return { ok: true, value: null };
+      if (typeof val !== 'string') return { ok: false };
       const trimmed = val.trim();
-      return { value: trimmed === '' ? null : trimmed, label };
+      return { ok: true, value: trimmed === '' ? null : trimmed };
     };
 
-    const dirCheck = cleanOptionalField(director, movie.director, 'Director');
-    const genreCheck = cleanOptionalField(genre, movie.genre, 'Genre');
-    const descCheck = cleanOptionalField(description, movie.description, 'Description');
+    const dirRes = cleanOptionalText(director, movie.director);
+    const genreRes = cleanOptionalText(genre, movie.genre);
+    const descRes = cleanOptionalText(description, movie.description);
 
-    for (const check of [dirCheck, genreCheck, descCheck]) {
-      if (typeof check === 'symbol') {
-        return res.status(400).json({ error: 'Optional fields must be text or null.' });
+    if (!dirRes.ok || !genreRes.ok || !descRes.ok) {
+      return res.status(400).json({ error: 'Optional fields must be text or null.' });
+    }
+
+    let updatedPosterUrl = movie.poster_url ?? null;
+    if (poster_url !== undefined) {
+      if (poster_url === null || (typeof poster_url === 'string' && poster_url.trim() === '')) {
+        updatedPosterUrl = null;
+      } else if (typeof poster_url === 'string') {
+        const trimmedUrl = poster_url.trim();
+        try {
+          const parsed = new URL(trimmedUrl);
+          if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+            return res.status(400).json({ error: 'Poster URL must use http or https.' });
+          }
+          updatedPosterUrl = trimmedUrl;
+        } catch {
+          return res.status(400).json({ error: 'Poster URL must be a valid URL.' });
+        }
+      } else {
+        return res.status(400).json({ error: 'Poster URL must be a valid URL or null.' });
       }
     }
 
-    const updatedDirector = typeof dirCheck === 'object' ? dirCheck.value : dirCheck;
-    const updatedGenre = typeof genreCheck === 'object' ? genreCheck.value : genreCheck;
-    const updatedDescription = typeof descCheck === 'object' ? descCheck.value : descCheck;
-
     const updateSql = `
       UPDATE movies
-      SET title = ?, director = ?, release_year = ?, genre = ?, description = ?
-      WHERE id = ? AND user_id = ?
+      SET title = ?, director = ?, release_year = ?, genre = ?, description = ?, poster_url = ?
+      WHERE id = ?
     `;
 
     db.run(
       updateSql,
-      [updatedTitle, updatedDirector, updatedYear, updatedGenre, updatedDescription, movieId, req.user.id],
-      function (err) {
-        if (err) {
-          console.error(err);
+      [
+        updatedTitle,
+        dirRes.value,
+        updatedYear,
+        genreRes.value,
+        descRes.value,
+        updatedPosterUrl,
+        movieId
+      ],
+      function (updateErr) {
+        if (updateErr) {
+          console.error(updateErr);
           return res.status(500).json({ error: 'Internal server error' });
         }
 
-        db.get('SELECT * FROM movies WHERE id = ?', [movieId], (err, updatedMovie) => {
-          if (err) {
-            console.error(err);
+        db.get('SELECT * FROM movies WHERE id = ?', [movieId], (selectErr, updatedMovie) => {
+          if (selectErr) {
+            console.error(selectErr);
             return res.status(500).json({ error: 'Internal server error' });
           }
+
           return res.status(200).json({ movie: updatedMovie });
         });
       }
@@ -242,6 +293,10 @@ router.delete('/:id', (req, res) => {
     return res.status(401).json({ error: 'Unauthorized.' });
   }
 
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Forbidden. Admin access required.' });
+  }
+
   const movieId = Number(req.params.id);
   if (!Number.isInteger(movieId) || movieId <= 0) {
     return res.status(400).json({ error: 'Invalid movie ID.' });
@@ -252,26 +307,25 @@ router.delete('/:id', (req, res) => {
       console.error(err);
       return res.status(500).json({ error: 'Internal server error' });
     }
+
     if (!movie) {
       return res.status(404).json({ error: 'Movie not found.' });
     }
-    if (movie.user_id !== req.user.id) {
-      return res.status(403).json({ error: 'Forbidden. You do not own this movie.' });
-    }
 
-    db.run('DELETE FROM movies WHERE id = ? AND user_id = ?', [movieId, req.user.id], function (err) {
-      if (err) {
-        console.error(err);
+    db.run('DELETE FROM movies WHERE id = ?', [movieId], function (deleteErr) {
+      if (deleteErr) {
+        console.error(deleteErr);
         return res.status(500).json({ error: 'Internal server error' });
       }
+
       if (this.changes === 0) {
         return res.status(404).json({ error: 'Movie not found.' });
       }
+
       return res.status(200).json({ message: 'Movie deleted successfully.' });
     });
   });
 });
-
 
 // Create a review: POST /api/movies/:id/reviews
 router.post('/:id/reviews', (req, res) => {
